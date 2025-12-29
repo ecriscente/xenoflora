@@ -1,16 +1,20 @@
 extends Node
 class_name AIController
 
-## AI Controller - Basic greedy strategy
+## AI Controller - Aggressive greedy strategy
 ##
 ## Milestone 6: AI Opponent
-## Targets weakest player asteroids
-## Attacks when AI has 1.5x required spores
-## Sends from strongest AI asteroid
+## - Attacks from EVERY conquered asteroid
+## - Very aggressive threshold (0.9x required spores)
+## - Targets closest weak player asteroids
+## - Acts every 2 seconds
+## - Sends 60% of spores per attack
 
 # AI configuration
-const ATTACK_THRESHOLD_MULTIPLIER: float = 1.2  # Lower = more aggressive
-const AI_TURN_INTERVAL: float = 3.0  # Seconds between AI actions
+const ATTACK_THRESHOLD_MULTIPLIER: float = 0.9  # Lower = more aggressive (attack even without full coverage)
+const AI_TURN_INTERVAL: float = 2.0  # Seconds between AI actions
+const MIN_SPORES_TO_ATTACK: int = 8  # Minimum spores needed to consider attacking
+const SPORE_SEND_PERCENTAGE: float = 0.6  # Send 60% of spores per attack
 
 # AI turn timer
 var turn_timer: float = 0.0
@@ -36,11 +40,10 @@ func _take_turn() -> void:
 	if ai_asteroids.size() == 0 or player_asteroids.size() == 0:
 		return  # Can't act if no asteroids
 
-	# Try to attack from multiple AI asteroids
-	var attacks_made = 0
+	# Attack from EVERY AI asteroid that has enough spores
 	for attacker in ai_asteroids:
 		# Skip asteroids with too few spores
-		if attacker.current_spores < 15:
+		if attacker.current_spores < MIN_SPORES_TO_ATTACK:
 			continue
 
 		# Find best target for this attacker
@@ -51,17 +54,13 @@ func _take_turn() -> void:
 		# Calculate required spores to capture
 		var required_spores = _calculate_required_spores(target)
 
-		# Check if we have enough (lower threshold for more aggression)
+		# Check if we have enough (very aggressive threshold)
 		var attack_threshold = required_spores * ATTACK_THRESHOLD_MULTIPLIER
 		if attacker.current_spores >= attack_threshold:
-			# Attack! Send 50% of available spores
-			var send_count = int(attacker.current_spores / 2.0)
+			# Attack! Send configured percentage of available spores
+			var send_count = int(attacker.current_spores * SPORE_SEND_PERCENTAGE)
 			if send_count > 0:
 				GameManager.send_spores(attacker, target, send_count)
-				attacks_made += 1
-				# Allow up to 2 attacks per turn
-				if attacks_made >= 2:
-					break
 
 
 ## Get all AI-owned asteroids

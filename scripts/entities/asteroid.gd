@@ -34,6 +34,10 @@ var radius: float = 50.0:
 var production_rate: float = 1.0  # Base: 1 spore per second
 var production_accumulator: float = 0.0
 
+# Trees
+var trees: Array[PlantedTree] = []
+var tree_container: Node2D = null  # Created dynamically when first tree is planted
+
 # Node references (assigned in _ready)
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -66,6 +70,7 @@ func _process(delta: float) -> void:
 	# Only owned asteroids produce spores
 	if owner_id >= 0:
 		produce_spores(delta)
+		_update_tree_growth(delta)
 
 
 ## Produce spores over time based on asteroid stats
@@ -73,8 +78,9 @@ func produce_spores(delta: float) -> void:
 	var base_rate = production_rate
 	var energy_multiplier = max_energy / 100.0
 	var defense_multiplier = defense_bonus
+	var tree_multiplier = get_production_multiplier()
 
-	production_accumulator += base_rate * energy_multiplier * defense_multiplier * delta
+	production_accumulator += base_rate * energy_multiplier * defense_multiplier * tree_multiplier * delta
 
 	# Convert accumulator to whole spores
 	if production_accumulator >= 1.0:
@@ -87,6 +93,9 @@ func produce_spores(delta: float) -> void:
 ## Set asteroid ownership and update visuals
 func change_owner(new_owner: int) -> void:
 	if owner_id != new_owner:
+		# Destroy trees when ownership changes
+		_clear_all_trees()
+
 		owner_id = new_owner
 		owner_changed.emit(new_owner)
 
@@ -114,6 +123,10 @@ func deselect() -> void:
 
 ## Serialize asteroid state to dictionary for saving/networking
 func to_dict() -> Dictionary:
+	var tree_data = []
+	for tree in trees:
+		tree_data.append(tree.to_dict())
+
 	return {
 		"position": {"x": position.x, "y": position.y},
 		"owner_id": owner_id,
@@ -121,7 +134,8 @@ func to_dict() -> Dictionary:
 		"max_energy": max_energy,
 		"defense_bonus": defense_bonus,
 		"speed_bonus": speed_bonus,
-		"radius": radius
+		"radius": radius,
+		"trees": tree_data
 	}
 
 
@@ -134,6 +148,14 @@ func from_dict(data: Dictionary) -> void:
 	defense_bonus = data.defense_bonus
 	speed_bonus = data.speed_bonus
 	radius = data.radius
+
+	# Restore trees
+	if data.has("trees"):
+		for tree_data in data.trees:
+			var tree = PlantedTree.new()
+			tree.restore_from_dict(tree_data)
+			trees.append(tree)
+			_spawn_tree_visual(tree)
 
 
 ## Update sprite based on ownership
@@ -185,3 +207,136 @@ func _update_spore_label() -> void:
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		clicked.emit(self)
+
+
+## ===== Tree System Methods =====
+
+## Get maximum trees allowed based on energy
+func get_max_trees() -> int:
+	return int(max_energy / 50.0)
+
+
+## Check if tree can be planted
+func can_plant_tree() -> bool:
+	return owner_id == 0 and current_spores >= 20 and trees.size() < get_max_trees()
+
+
+## Plant a tree of given type
+func plant_tree(type: int) -> bool:
+	if not can_plant_tree():
+		return false
+
+	current_spores -= 20
+	var tree = PlantedTree.new()
+	tree.tree_type = type
+	tree.position_offset = _get_tree_position(trees.size())
+	trees.append(tree)
+	_spawn_tree_visual(tree)
+	return true
+
+
+## Calculate tree position around asteroid
+func _get_tree_position(tree_index: int) -> Vector2:
+	var max_trees = get_max_trees()
+	if max_trees == 0:
+		return Vector2.ZERO
+	var angle = (TAU / max(max_trees, 1)) * tree_index
+	var distance = radius + 30.0
+	return Vector2(cos(angle), sin(angle)) * distance
+
+
+## Get production multiplier from trees
+func get_production_multiplier() -> float:
+	var multiplier = 1.0
+	for tree in trees:
+		if tree.tree_type == 0:  # PRODUCTION
+			multiplier += tree.get_bonus_value()
+	return multiplier
+
+
+## Get effective defense with tree bonuses
+func get_effective_defense() -> float:
+	var total = defense_bonus
+	for tree in trees:
+		if tree.tree_type == 1:  # DEFENSE
+			total += tree.get_bonus_value()
+	return total
+
+
+## Get speed multiplier from trees
+func get_speed_multiplier() -> float:
+	var multiplier = speed_bonus
+	for tree in trees:
+		if tree.tree_type == 2:  # SPEED
+			multiplier += tree.get_bonus_value()
+	return multiplier
+
+
+## Update tree growth each frame
+func _update_tree_growth(delta: float) -> void:
+	for tree in trees:
+		if tree.update_growth(delta):
+			_update_tree_visual(tree)
+
+
+## Spawn visual representation of tree
+func _spawn_tree_visual(tree: PlantedTree) -> void:
+	if not tree_container:
+		tree_container = Node2D.new()
+		tree_container.name = "TreeContainer"
+		add_child(tree_container)
+
+	var visual = Sprite2D.new()
+	visual.name = "Tree_%d" % trees.find(tree)
+	visual.position = tree.position_offset
+	visual.texture = _get_tree_texture(tree)
+	visual.modulate = _get_owner_color()
+	tree_container.add_child(visual)
+
+
+## Update tree visual when growth stage changes
+func _update_tree_visual(tree: PlantedTree) -> void:
+	if not tree_container:
+		return
+
+	var index = trees.find(tree)
+	if index == -1:
+		return
+
+	var visual = tree_container.get_node_or_null("Tree_%d" % index)
+	if visual and visual is Sprite2D:
+		visual.texture = _get_tree_texture(tree)
+
+
+## Get texture path for tree
+func _get_tree_texture(tree: PlantedTree) -> Texture2D:
+	var type_name = ""
+	match tree.tree_type:
+		0:  # PRODUCTION
+			type_name = "production"
+		1:  # DEFENSE
+			type_name = "defense"
+		2:  # SPEED
+			type_name = "speed"
+
+	var path = "res://assets/sprites/trees/tree_%s_stage%d.svg" % [type_name, tree.growth_stage]
+	return load(path)
+
+
+## Get owner color for tree tinting
+func _get_owner_color() -> Color:
+	match owner_id:
+		0:  # Player
+			return Color(0.09, 0.77, 1.0)  # Cyan
+		1:  # AI
+			return Color(0.97, 0.44, 0.44)  # Red
+		_:
+			return Color(0.5, 0.5, 0.5)  # Gray
+
+
+## Clear all tree visuals
+func _clear_all_trees() -> void:
+	trees.clear()
+	if tree_container:
+		tree_container.queue_free()
+		tree_container = null

@@ -10,6 +10,14 @@ extends CanvasLayer
 @onready var game_over_label: Label = $GameOverPanel/GameOverLabel
 @onready var restart_button: Button = $GameOverPanel/RestartButton
 
+@onready var planting_panel: Panel = $PlantingPanel
+@onready var tree_info_label: Label = $PlantingPanel/TreeInfoLabel
+@onready var plant_production_button: Button = $PlantingPanel/PlantProductionButton
+@onready var plant_defense_button: Button = $PlantingPanel/PlantDefenseButton
+@onready var plant_speed_button: Button = $PlantingPanel/PlantSpeedButton
+
+var selected_asteroid: Asteroid = null
+
 
 func _ready() -> void:
 	# Connect to game events
@@ -25,12 +33,41 @@ func _ready() -> void:
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
 
+	# Connect planting buttons
+	if plant_production_button:
+		plant_production_button.pressed.connect(_on_plant_production)
+	if plant_defense_button:
+		plant_defense_button.pressed.connect(_on_plant_defense)
+	if plant_speed_button:
+		plant_speed_button.pressed.connect(_on_plant_speed)
+
+	# Hide planting panel initially
+	if planting_panel:
+		planting_panel.visible = false
+
 	_update_stats()
 
 
 func _process(_delta: float) -> void:
 	# Update stats every frame
 	_update_stats()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not selected_asteroid or selected_asteroid.owner_id != 0:
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_P:
+				_on_plant_production()
+				get_viewport().set_input_as_handled()
+			KEY_D:
+				_on_plant_defense()
+				get_viewport().set_input_as_handled()
+			KEY_S:
+				_on_plant_speed()
+				get_viewport().set_input_as_handled()
 
 
 func _update_stats() -> void:
@@ -55,6 +92,8 @@ func _update_stats() -> void:
 
 
 func _on_asteroid_selected(asteroid: Asteroid) -> void:
+	selected_asteroid = asteroid
+
 	if not selected_info:
 		return
 
@@ -73,10 +112,18 @@ func _on_asteroid_selected(asteroid: Asteroid) -> void:
 	]
 	selected_info.visible = true
 
+	# Show planting panel for player asteroids
+	if asteroid.owner_id == 0 and planting_panel:
+		planting_panel.visible = true
+		_update_planting_buttons()
+
 
 func _on_asteroid_deselected() -> void:
+	selected_asteroid = null
 	if selected_info:
 		selected_info.visible = false
+	if planting_panel:
+		planting_panel.visible = false
 
 
 func _on_game_over(winner: int) -> void:
@@ -101,3 +148,49 @@ func _on_restart_pressed() -> void:
 
 	# Use call_deferred to reload after current frame
 	get_tree().call_deferred("reload_current_scene")
+
+
+## ===== Tree Planting Methods =====
+
+func _update_planting_buttons() -> void:
+	if not selected_asteroid or not planting_panel:
+		return
+
+	var can_plant = selected_asteroid.can_plant_tree()
+
+	if plant_production_button:
+		plant_production_button.disabled = not can_plant
+	if plant_defense_button:
+		plant_defense_button.disabled = not can_plant
+	if plant_speed_button:
+		plant_speed_button.disabled = not can_plant
+
+	if tree_info_label:
+		tree_info_label.text = "Trees: %d/%d" % [
+			selected_asteroid.trees.size(),
+			selected_asteroid.get_max_trees()
+		]
+
+
+func _on_plant_production() -> void:
+	if selected_asteroid and selected_asteroid.plant_tree(0):  # PRODUCTION
+		_update_planting_buttons()
+		# Hide panel after successful plant
+		if planting_panel:
+			planting_panel.visible = false
+
+
+func _on_plant_defense() -> void:
+	if selected_asteroid and selected_asteroid.plant_tree(1):  # DEFENSE
+		_update_planting_buttons()
+		# Hide panel after successful plant
+		if planting_panel:
+			planting_panel.visible = false
+
+
+func _on_plant_speed() -> void:
+	if selected_asteroid and selected_asteroid.plant_tree(2):  # SPEED
+		_update_planting_buttons()
+		# Hide panel after successful plant
+		if planting_panel:
+			planting_panel.visible = false

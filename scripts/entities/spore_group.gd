@@ -60,6 +60,9 @@ func initialize(from: Asteroid, to: Asteroid, count: int, owner: int) -> void:
 
 ## Spawn individual spore units
 func _spawn_spores() -> void:
+	# Calculate speed with source asteroid bonus
+	var effective_speed = travel_speed * source_asteroid.get_speed_multiplier()
+
 	for i in spore_count:
 		var spore = SPORE_UNIT_SCENE.instantiate()
 		add_child(spore)
@@ -72,7 +75,7 @@ func _spawn_spores() -> void:
 		spore.position = source_asteroid.position + offset
 		spore.target_position = target_asteroid.position
 		spore.owner_id = owner_id
-		spore.travel_speed = travel_speed
+		spore.travel_speed = effective_speed  # Use speed with tree bonuses
 
 		# Set spore color based on owner
 		spore.set_owner_color(owner_id)

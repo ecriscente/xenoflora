@@ -100,7 +100,7 @@ func send_spores(from: Asteroid, to: Asteroid, count: int) -> void:
 ## Process combat when spores arrive at target
 func process_combat(attacker_count: int, attacker_owner: int, target: Asteroid) -> void:
 	var defender_count = target.current_spores
-	var defender_bonus = target.defense_bonus
+	var defender_bonus = target.get_effective_defense()  # Include tree bonuses
 	var effective_defense = defender_count * defender_bonus
 
 	if attacker_count > effective_defense:

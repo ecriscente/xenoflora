@@ -22,6 +22,49 @@ offset_bottom = 110.0
 theme_override_font_sizes/font_size = 20
 text = "Selected: Player | Spores: 0 | Energy: 100 | Defense: 1.0x"
 
+[node name="PlantingPanel" type="Panel" parent="."]
+visible = false
+offset_left = 20.0
+offset_top = 120.0
+offset_right = 420.0
+offset_bottom = 270.0
+
+[node name="TreeInfoLabel" type="Label" parent="PlantingPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 35.0
+theme_override_font_sizes/font_size = 18
+text = "Trees: 0/3"
+
+[node name="PlantProductionButton" type="Button" parent="PlantingPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 40.0
+offset_right = 390.0
+offset_bottom = 75.0
+theme_override_font_sizes/font_size = 16
+text = "Plant Production Tree (P) - 20 spores"
+
+[node name="PlantDefenseButton" type="Button" parent="PlantingPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 80.0
+offset_right = 390.0
+offset_bottom = 115.0
+theme_override_font_sizes/font_size = 16
+text = "Plant Defense Tree (D) - 20 spores"
+
+[node name="PlantSpeedButton" type="Button" parent="PlantingPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 120.0
+offset_right = 390.0
+offset_bottom = 155.0
+theme_override_font_sizes/font_size = 16
+text = "Plant Speed Tree (S) - 20 spores"
+
 [node name="GameOverPanel" type="Panel" parent="."]
 process_mode = 3
 visible = false

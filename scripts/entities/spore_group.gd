@@ -77,6 +77,9 @@ func _spawn_spores() -> void:
 		# Set spore color based on owner
 		spore.set_owner_color(owner_id)
 
+		# Register with BoidsSystem
+		BoidsSystem.register_unit(spore)
+
 		spore.arrived.connect(_on_spore_arrived)
 		spores.append(spore)
 
@@ -89,6 +92,11 @@ func _on_spore_arrived() -> void:
 
 ## Handle group arrival at target
 func _on_arrival() -> void:
+	# Unregister all units from BoidsSystem
+	for spore in spores:
+		if is_instance_valid(spore):
+			BoidsSystem.unregister_unit(spore)
+
 	arrived_at_target.emit(self)
 
 	# Clean up

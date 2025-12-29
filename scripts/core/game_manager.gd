@@ -158,12 +158,17 @@ func _on_spore_group_arrived(group) -> void:
 	# Remove from tracking
 	spore_groups.erase(group)
 
-	# Process combat
 	var attacker_count = group.get_current_count()
 	var attacker_owner = group.owner_id
 	var target = group.target_asteroid
 
-	process_combat(attacker_count, attacker_owner, target)
+	# Check if friendly reinforcement or enemy attack
+	if attacker_owner == target.owner_id:
+		# Friendly reinforcement - just add spores
+		target.current_spores += attacker_count
+	else:
+		# Enemy target - process combat
+		process_combat(attacker_count, attacker_owner, target)
 
 
 ## Handle asteroid click events

@@ -74,10 +74,15 @@ func unregister_unit(unit) -> void:
 
 ## Update spatial grid - move units between cells as they travel
 func _update_spatial_grid() -> void:
+	# Clean up invalid units first
+	var valid_units: Array = []
 	for unit in all_units:
-		if not is_instance_valid(unit):
-			continue
+		if is_instance_valid(unit):
+			valid_units.append(unit)
+	all_units = valid_units
 
+	# Update grid positions
+	for unit in all_units:
 		var current_cell = unit.get_meta("grid_cell") if unit.has_meta("grid_cell") else null
 		var new_cell = world_to_cell(unit.position)
 
@@ -122,6 +127,11 @@ func _update_boids_staggered(delta: float) -> void:
 ## Get neighbors within perception radius
 func get_neighbors(unit) -> Array:
 	var neighbors: Array = []
+
+	# Validate unit first
+	if not is_instance_valid(unit):
+		return neighbors
+
 	var cell = world_to_cell(unit.position)
 
 	# Check 3x3 grid of cells (current + 8 surrounding)
@@ -130,6 +140,10 @@ func get_neighbors(unit) -> Array:
 			var check_cell = cell + Vector2i(dx, dy)
 			if spatial_grid.has(check_cell):
 				for other in spatial_grid[check_cell]:
+					# Validate other unit
+					if not is_instance_valid(other):
+						continue
+
 					# Skip self
 					if other == unit:
 						continue

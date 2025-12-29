@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://bmxk2wv7pn5y4"]
+[gd_scene load_steps=6 format=3 uid="uid://bmxk2wv7pn5y4"]
 
 [ext_resource type="Script" path="res://scripts/systems/input_handler.gd" id="1_input_handler"]
 [ext_resource type="Script" path="res://scenes/main/game_world.gd" id="2_game_world"]
 [ext_resource type="Script" path="res://scripts/systems/camera_controller.gd" id="3_camera_controller"]
+[ext_resource type="Script" path="res://scripts/ai/ai_controller.gd" id="4_ai_controller"]
+[ext_resource type="PackedScene" uid="uid://c8y7qw5n3j4k1" path="res://scenes/ui/hud.tscn" id="5_hud"]
 
 [node name="Main" type="Node2D"]
 
@@ -10,27 +12,26 @@
 script = ExtResource("2_game_world")
 
 [node name="Background" type="ColorRect" parent="GameWorld"]
-anchors_preset = 15
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 1.0
-anchor_bottom = 1.0
 offset_left = -2000.0
 offset_top = -2000.0
-offset_right = 2000.0
+offset_right = 4000.0
 offset_bottom = 2000.0
-grow_horizontal = 2
-grow_vertical = 2
 color = Color(0.0627451, 0.0627451, 0.0941176, 1)
 z_index = -100
 
 [node name="Camera2D" type="Camera2D" parent="GameWorld"]
 position = Vector2(0, 0)
+zoom = Vector2(1, 1)
 script = ExtResource("3_camera_controller")
 
 [node name="AsteroidContainer" type="Node2D" parent="GameWorld"]
 
 [node name="SporeContainer" type="Node2D" parent="GameWorld"]
 
+[node name="AIController" type="Node" parent="GameWorld"]
+script = ExtResource("4_ai_controller")
+
 [node name="InputHandler" type="Node" parent="."]
 script = ExtResource("1_input_handler")
+
+[node name="HUD" parent="." instance=ExtResource("5_hud")]

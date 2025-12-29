@@ -1,0 +1,5 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Neutral asteroid - gray -->
+  <circle cx="64" cy="64" r="50" fill="#4A5568" stroke="#718096" stroke-width="2"/>
+  <circle cx="64" cy="64" r="45" fill="none" stroke="#2D3748" stroke-width="1" opacity="0.3"/>
+</svg>

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2k8n5p9x4mq1"]
+
+[ext_resource type="Script" path="res://scripts/entities/spore_unit.gd" id="1_spore_unit_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/spore_player.svg" id="2_spore_sprite"]
+
+[node name="SporeUnit" type="Node2D"]
+script = ExtResource("1_spore_unit_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("2_spore_sprite")

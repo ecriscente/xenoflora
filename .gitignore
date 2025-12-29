@@ -44,3 +44,11 @@ builds/
 dist/
 *.zip
 *.tar.gz
+
+# GdUnit4 test reports
+.gdunit4_reports/
+test_reports/
+reports/
+
+# Godot UID files (auto-generated)
+*.uid

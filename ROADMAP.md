@@ -35,6 +35,53 @@ Transform Xenoflora from a polished MVP into a full-featured RTS game with deep 
 
 ---
 
+## Phase 1.5: Testing Infrastructure ✅
+
+**Completion Date:** December 29, 2025
+**Status:** Complete
+**Priority:** Foundation for future development
+
+### Delivered Features
+- ✅ GdUnit4 testing framework installed and configured
+- ✅ Unit tests for asteroid generation system
+- ✅ Unit tests for combat resolution mechanics
+- ✅ Test runner documentation and setup guide
+- ✅ CI/CD ready command-line test execution
+
+### Test Coverage
+**Asteroid Generation Tests (test_asteroid_generator.gd):**
+- ✅ Correct count generation
+- ✅ No overlapping asteroids validation
+- ✅ Play area boundary checking
+- ✅ Property range validation (energy, defense, speed)
+- ✅ Starting position assignment
+- ✅ Poisson disk sampling verification
+- ✅ Edge cases (insufficient space, zero asteroids, large areas)
+
+**Combat System Tests (test_combat_system.gd):**
+- ✅ Successful capture scenarios
+- ✅ Failed capture scenarios
+- ✅ Defense bonus multiplier calculations
+- ✅ Defender attrition mechanics
+- ✅ Edge cases (empty asteroids, equal forces, overkill)
+- ✅ Fractional damage rounding
+- ✅ Capture threshold validation
+
+### Technical Achievements
+- Automated testing infrastructure for game logic
+- Foundation for test-driven development in Phase 2+
+- Regression prevention for core systems
+- Documentation for writing new tests
+
+### Next Steps for Testing
+- [ ] Add boids system tests (neighbor queries, force calculations)
+- [ ] Add AI behavior tests (target selection, attack logic)
+- [ ] Integration tests for full game flow
+- [ ] Performance benchmarking tests
+- [ ] CI/CD pipeline integration (GitHub Actions)
+
+---
+
 ## Phase 2: Enhanced Gameplay 🎯
 
 **Timeline:** 2-3 weeks
